@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: landsync-db
+    environment:
+      POSTGRES_USER: landsync
+      POSTGRES_PASSWORD: landsync
+      POSTGRES_DB: landsync
+    ports:
+      - "5433:5432"
+    volumes:
+      - landsync_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U landsync -d landsync"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: landsync-redis
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    ports:
+      - "6380:6379"
+    volumes:
+      - landsync_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  landsync_pgdata:
+  landsync_redisdata:
